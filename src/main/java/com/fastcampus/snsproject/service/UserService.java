@@ -5,8 +5,11 @@ import com.fastcampus.snsproject.exception.SnsApplicationException;
 import com.fastcampus.snsproject.model.User;
 import com.fastcampus.snsproject.model.entity.UserEntity;
 import com.fastcampus.snsproject.repository.UserEntityRepository;
+import com.fastcampus.snsproject.util.JwtTokenUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +21,13 @@ import java.util.Optional;
 public class UserService {
 
     private final UserEntityRepository userRepository;
+    private final BCryptPasswordEncoder encoder;
+
+    @Value("${jwt.secret-key}")
+    private String secretKey;
+
+    @Value("${jwt.token.expired-time-ms}")
+    private Long expiredTimeMs;
 
     @Transactional
     public User join(String userName, String password) {
@@ -38,12 +48,14 @@ public class UserService {
         // 회원가입 여부 check
         UserEntity userEntity = userRepository.findByUserName(userName).orElseThrow(() -> new SnsApplicationException(ErrorCode.DUPLICATED_USER_NAME, ""));
 
-        // 비밀번호 check
-        if(!userEntity.getPassword().equals(password)) {
-            throw new SnsApplicationException(ErrorCode.DUPLICATED_USER_NAME, "");
+        // 비밀번호 체크k
+        if (!encoder.matches(password, userEntity.getPassword())) {
+            throw new SnsApplicationException(ErrorCode.INVALID_PASSWORD);
         }
 
         //토큰 생성
-        return "";
+        String token = JwtTokenUtils.generateToken(userName, secretKey, expiredTimeMs);
+
+        return token;
     }
 }
