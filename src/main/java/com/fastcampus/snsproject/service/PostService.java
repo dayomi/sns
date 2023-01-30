@@ -24,7 +24,7 @@ public class PostService {
                 new SnsApplicationException(ErrorCode.USER_NOT_FOUND));
 
         // post save
-        postEntityRepository.save(PostEntity.of(title, body, userEntity));
+        PostEntity saved = postEntityRepository.save(PostEntity.of(title, body, userEntity));
 
         // return
     }

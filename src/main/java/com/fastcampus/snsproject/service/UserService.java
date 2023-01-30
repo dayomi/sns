@@ -20,7 +20,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class UserService {
 
-    private final UserEntityRepository userRepository;
+    private final UserEntityRepository userEntityRepository;
     private final BCryptPasswordEncoder encoder;
 
     @Value("${jwt.secret-key}")
@@ -29,16 +29,22 @@ public class UserService {
     @Value("${jwt.token.expired-time-ms}")
     private Long expiredTimeMs;
 
+    public User loadUserByUserName(String userName) {
+        return userEntityRepository.findByUserName(userName).map(User::fromEntity).orElseThrow(() ->
+                        new SnsApplicationException(ErrorCode.USER_NOT_FOUND, String.format("%s not founded", userName))
+        );
+    }
+
     @Transactional
     public User join(String userName, String password) {
 
         // 회원가입하려는 userName으로 회원가입된 user가 있는지 check
-        userRepository.findByUserName(userName).ifPresent(it -> {
+        userEntityRepository.findByUserName(userName).ifPresent(it -> {
             throw new SnsApplicationException(ErrorCode.DUPLICATED_USER_NAME, String.format("%s is duplicated", userName));
         });
 
         // 회원가입 진행 = user 등록
-        UserEntity userEntity = userRepository.save(UserEntity.of(userName, password));
+        UserEntity userEntity = userEntityRepository.save(UserEntity.of(userName, password));
 
         return User.fromEntity(userEntity);
     }
@@ -46,7 +52,7 @@ public class UserService {
     //TODO : implement
     public String login(String userName, String password) {
         // 회원가입 여부 check
-        UserEntity userEntity = userRepository.findByUserName(userName).orElseThrow(() -> new SnsApplicationException(ErrorCode.DUPLICATED_USER_NAME, ""));
+        UserEntity userEntity = userEntityRepository.findByUserName(userName).orElseThrow(() -> new SnsApplicationException(ErrorCode.DUPLICATED_USER_NAME, ""));
 
         // 비밀번호 체크k
         if (!encoder.matches(password, userEntity.getPassword())) {

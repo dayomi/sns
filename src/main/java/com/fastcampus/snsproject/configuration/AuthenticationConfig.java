@@ -1,5 +1,6 @@
 package com.fastcampus.snsproject.configuration;
 
+import com.fastcampus.snsproject.configuration.filter.JwtTokenFilter;
 import com.fastcampus.snsproject.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -10,6 +11,7 @@ import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -21,12 +23,6 @@ public class AuthenticationConfig extends WebSecurityConfigurerAdapter {
     private String key;
 
     @Override
-    public void configure(WebSecurity web) throws Exception {
-        web.ignoring().regexMatchers("^(?!/api/).*")
-                .antMatchers(HttpMethod.POST, "/api/*/users/join", "/api/*/users/login");
-    }
-
-    @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.csrf().disable()
                 .authorizeRequests()
@@ -35,7 +31,7 @@ public class AuthenticationConfig extends WebSecurityConfigurerAdapter {
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
-                .addFilterBefore(new JwtTokenFilter(key, userService), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(new JwtTokenFilter(key, userService), UsernamePasswordAuthenticationFilter.class);
                 // TODO
                 //.exceptionHandling()
                 //.authenticationEntryPoint(new CustomAuthenticationEntryPoint());
