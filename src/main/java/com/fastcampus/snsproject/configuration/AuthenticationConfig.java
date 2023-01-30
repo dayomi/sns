@@ -1,6 +1,7 @@
 package com.fastcampus.snsproject.configuration;
 
 import com.fastcampus.snsproject.configuration.filter.JwtTokenFilter;
+import com.fastcampus.snsproject.exception.CustomAuthenticationEntryPoint;
 import com.fastcampus.snsproject.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,9 +32,9 @@ public class AuthenticationConfig extends WebSecurityConfigurerAdapter {
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
-                .addFilterBefore(new JwtTokenFilter(key, userService), UsernamePasswordAuthenticationFilter.class);
-                // TODO
-                //.exceptionHandling()
-                //.authenticationEntryPoint(new CustomAuthenticationEntryPoint());
+                .addFilterBefore(new JwtTokenFilter(key, userService), UsernamePasswordAuthenticationFilter.class)
+
+                .exceptionHandling()
+                .authenticationEntryPoint(new CustomAuthenticationEntryPoint());
     }
 }
